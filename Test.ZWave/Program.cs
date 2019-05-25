@@ -16,16 +16,14 @@
   limitations under the License.
 */
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-
-using NLog;
-using NLog.Config;
-
 using ZWaveLib;
 using ZWaveLib.CommandClasses;
 
@@ -36,7 +34,6 @@ namespace Test.ZWave
         private static string serialPortName = "COM3";
         private static ControllerStatus controllerStatus = ControllerStatus.Disconnected;
         private static bool showDebugOutput = false;
-        private static readonly LoggingRule LoggingRule = LogManager.Configuration.LoggingRules[0];
 
         public static void Main(string[] cargs)
         {
@@ -44,67 +41,76 @@ namespace Test.ZWave
             Console.WriteLine("\nZWaveLib Test Program\n");
             Console.ForegroundColor = ConsoleColor.White;
 
-            var controller = new ZWaveController(serialPortName);
-            // Register controller event handlers
-            controller.ControllerStatusChanged += Controller_ControllerStatusChanged;;
-            controller.DiscoveryProgress += Controller_DiscoveryProgress;
-            controller.NodeOperationProgress += Controller_NodeOperationProgress;
-            controller.NodeUpdated += Controller_NodeUpdated;
-
-            // Main program loop
-            var command = "";
-            while (command != "!")
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddLogging(o =>
             {
-                ShowMenu();
-                // TODO: Allow issuing CommandClass commands on nodes from the console input
-                // TODO: Add "Associate node to controller" option
-                // TODO: Add "Query node parameters" based on implemented classes
-                command = Console.ReadLine();
-                switch (command)
+                o.AddConsole();
+            });
+
+            using (var serviceProvider = serviceCollection.BuildServiceProvider())
+            using(var scope = serviceProvider.CreateScope())
+            using (var controller = new ZWaveController(scope.ServiceProvider.GetRequiredService<ILogger<ZWaveController>>(), serialPortName))
+            {
+                // Register controller event handlers
+                controller.ControllerStatusChanged += Controller_ControllerStatusChanged; ;
+                controller.DiscoveryProgress += Controller_DiscoveryProgress;
+                controller.NodeOperationProgress += Controller_NodeOperationProgress;
+                controller.NodeUpdated += Controller_NodeUpdated;
+
+                // Main program loop
+                var command = "";
+                while (command != "!")
                 {
-                    case "0":
-                        ToggleDebug(!showDebugOutput);
-                        break;
-                    case "1":
-                        ListNodes(controller);
-                        break;
-                    case "2":
-                        StartNodeAdd(controller);
-                        break;
-                    case "3":
-                        StopNodeAdd(controller);
-                        break;
-                    case "4":
-                        StartNodeRemove(controller);
-                        break;
-                    case "5":
-                        StopNodeRemove(controller);
-                        break;
-                    case "6":
-                        HealNetwork(controller);
-                        break;
-                    case "7":
-                        RunStressTest(controller);
-                        break;
-                    case "8":
-                        ShowZWaveLibApi();
-                        break;
-                    case "9":
-                        Discovery(controller);
-                        break;
-                    case "?":
-                        SetSerialPortName(controller);
-                        break;
-                    case "+":
-                        controller.Connect();
-                        break;
-                    case "~":
-                        RunCommandInteractive(controller);
-                        break;
+                    ShowMenu();
+                    // TODO: Allow issuing CommandClass commands on nodes from the console input
+                    // TODO: Add "Associate node to controller" option
+                    // TODO: Add "Query node parameters" based on implemented classes
+                    command = Console.ReadLine();
+                    switch (command)
+                    {
+                        case "0":
+                            ToggleDebug(!showDebugOutput);
+                            break;
+                        case "1":
+                            ListNodes(controller);
+                            break;
+                        case "2":
+                            StartNodeAdd(controller);
+                            break;
+                        case "3":
+                            StopNodeAdd(controller);
+                            break;
+                        case "4":
+                            StartNodeRemove(controller);
+                            break;
+                        case "5":
+                            StopNodeRemove(controller);
+                            break;
+                        case "6":
+                            HealNetwork(controller);
+                            break;
+                        case "7":
+                            RunStressTest(controller);
+                            break;
+                        case "8":
+                            ShowZWaveLibApi();
+                            break;
+                        case "9":
+                            Discovery(controller);
+                            break;
+                        case "?":
+                            SetSerialPortName(controller);
+                            break;
+                        case "+":
+                            controller.Connect();
+                            break;
+                        case "~":
+                            RunCommandInteractive(controller);
+                            break;
+                    }
                 }
+                Console.WriteLine("\nCiao!\n");
             }
-            Console.WriteLine("\nCiao!\n");
-            controller.Dispose();
         }
 
         private static void RunCommandInteractive(ZWaveController controller)
@@ -168,7 +174,7 @@ namespace Test.ZWave
 
         private static void ShowMenu()
         {
-            Console.WriteLine("\n[0] Toggle show debug (ShowDebug={0})", showDebugOutput);
+            //Console.WriteLine("\n[0] Toggle show debug (ShowDebug={0})", showDebugOutput);
             Console.WriteLine("[1] List nodes");
             Console.WriteLine("[2] Add node start");
             Console.WriteLine("[3] Add node stop");
@@ -187,14 +193,7 @@ namespace Test.ZWave
 
         private static void ToggleDebug(bool show = false)
         {
-            LogManager.Configuration.LoggingRules.Remove(LoggingRule);
-            LogManager.Configuration.Reload();
-            showDebugOutput = show;
-            if (showDebugOutput)
-            {
-                LogManager.Configuration.LoggingRules.Add(LoggingRule);
-                LogManager.Configuration.Reload();
-            }
+            //Not supporting this for now
         }
 
         private static void ListNodes(ZWaveController controller)

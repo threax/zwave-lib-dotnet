@@ -21,16 +21,20 @@
  *     Project Homepage: https://github.com/genielabs/zwave-lib-dotnet
  */
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-
-using NLog;
 
 namespace ZWaveLib
 {
     public class Utility
     {
-        internal static Logger logger = LogManager.GetCurrentClassLogger();
+        internal static ILogger logger;
+
+        internal static void SetLogger(ILogger logger)
+        {
+            Utility.logger = logger;
+        }
                 
         //from
         //http://stackoverflow.com/questions/311165/how-do-you-convert-byte-array-to-hexadecimal-string-and-vice-versa

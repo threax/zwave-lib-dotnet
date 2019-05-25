@@ -21,12 +21,12 @@
  *     Project Homepage: https://github.com/genielabs/serialport-lib-dotnet
  */
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
-
-using NLog;
+using ZWaveLib;
 
 namespace SerialPortLib
 {
@@ -62,7 +62,7 @@ namespace SerialPortLib
 
         #region Private Fields
 
-        internal static Logger logger = LogManager.GetCurrentClassLogger();
+        internal ILogger logger;
 
         private SerialPort _serialPort;
         private string _portName = "";
@@ -107,6 +107,11 @@ namespace SerialPortLib
         #endregion
 
         #region Public Members
+
+        public SerialPortInput(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         /// <summary>
         /// Connect to the serial port.

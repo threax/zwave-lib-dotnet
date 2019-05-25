@@ -34,6 +34,7 @@ using SerialPortLib;
 
 using ZWaveLib.Values;
 using ZWaveLib.CommandClasses;
+using Microsoft.Extensions.Logging;
 
 namespace ZWaveLib
 {
@@ -135,14 +136,15 @@ namespace ZWaveLib
         /// <summary>
         /// Initializes a new instance of the <see cref="ZWaveLib.ZWaveController"/> class.
         /// </summary>
-        public ZWaveController()
+        public ZWaveController(ILogger<ZWaveController> logger)
         {
+            Utility.SetLogger(logger);
             string codeBase = GetType().Assembly.CodeBase;
             UriBuilder uri = new UriBuilder(codeBase);
             string path = Uri.UnescapeDataString(uri.Path);
             configFolder = Path.GetDirectoryName(path);
             // Setup Serial Port
-            serialPort = new SerialPortInput();
+            serialPort = new SerialPortInput(logger);
             serialPort.MessageReceived += SerialPort_MessageReceived;
             serialPort.ConnectionStatusChanged += SerialPort_ConnectionStatusChanged;
             // Setup Queue Manager Task
@@ -155,7 +157,7 @@ namespace ZWaveLib
         /// Initializes a new instance of the <see cref="ZWaveLib.ZWaveController"/> class.
         /// </summary>
         /// <param name="portName">The serial port name.</param>
-        public ZWaveController(string portName) : this()
+        public ZWaveController(ILogger<ZWaveController> logger, string portName) : this(logger)
         {
             PortName = portName;
         }
