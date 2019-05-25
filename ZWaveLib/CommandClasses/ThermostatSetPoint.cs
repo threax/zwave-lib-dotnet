@@ -61,7 +61,7 @@ namespace ZWaveLib.CommandClasses
             setPoint.Scale = zvalue.Scale;
             setPoint.Size = zvalue.Size;
             setPoint.Value = zvalue.Value;
-            dynamic ptype = new ExpandoObject();
+            var ptype = new ThermostatSetPointValue();
             ptype.Type = (Value)message[2];
             // convert from Fahrenheit to Celsius if needed
             ptype.Value = (zvalue.Scale == (int)ZWaveTemperatureScaleType.Fahrenheit
