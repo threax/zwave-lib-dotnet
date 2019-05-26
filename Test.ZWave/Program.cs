@@ -44,6 +44,7 @@ namespace Test.ZWave
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddLogging(o =>
             {
+                o.SetMinimumLevel(LogLevel.Debug);
                 o.AddConsole();
             });
 
